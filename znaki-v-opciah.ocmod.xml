@@ -1,0 +1,253 @@
+<modification>
+  <code>options_price</code>
+  <name>Options price ocStore2</name>
+  <version>1.0.13 OC2</version>
+  <author>Sergey Sinicin</author>
+    
+  <file path="system/library/cart/cart.php">
+    <operation>
+      <search><![CDATA[$option_price = 0;]]></search>
+      <add position="after"><![CDATA[
+        $option_price_arr = array();
+      ]]></add>
+    </operation>
+      <operation>
+        <search><![CDATA[if ($option_value_query->row['price_prefix'] == '+') {]]></search>
+        <add position="replace" offset="4"><![CDATA[
+          //знаки равно нужными первыми
+          if ($option_value_query->row['price_prefix'] == '=') {
+              $sort_key=count($option_price_arr) + 1;
+          } else {
+              $sort_key=count($option_price_arr)+10;
+          }
+          
+          $option_price_arr[$sort_key] = array(
+              $option_value_query->row['price_prefix']=>$option_value_query->row['price'],
+          );
+        ]]></add>
+      </operation>
+      <operation>
+        <search><![CDATA[if (!$product_query->row['quantity']]]></search>
+        <add position="before"><![CDATA[
+          $new_price = $price;
+          $new_option_price = 0;
+          
+          ksort($option_price_arr);
+          
+          $has_eq_mod = false;
+
+          foreach($option_price_arr as $operations){
+              foreach($operations as $operation=>$value){
+                  if ($operation == '=') {
+                      //цена опции становится основной
+                      if (!$has_eq_mod){
+                          $new_price = 0;
+                          $new_option_price = $value;
+                          $has_eq_mod = true;
+                      } else {
+                          $new_option_price += $value;
+                      }
+                  } else if ($operation == '+') {
+                      $new_option_price += $value;
+                  } else if ($operation == '-') {
+                      $new_option_price -= $value;
+                  } else if ($operation == '*') {
+                      $new_price = $new_price * $value;
+                      $new_option_price = $new_option_price * $value;
+                  } else if ($operation == '/') {
+                      $new_price = $new_price / $value;
+                      $new_option_price = $new_option_price / $value;
+                  } else if ($operation == 'u') {
+                      $new_price = $new_price + (( $new_price * $value ) / 100);
+                      $new_option_price = $new_option_price + (( $new_option_price * $value ) / 100);
+                  } else if ($operation == 'd') {
+                      $new_price = $new_price - (( $new_price * $value ) / 100);
+                      $new_option_price = $new_option_price - (( $new_option_price * $value ) / 100);
+                  }
+              }
+          }
+          $price = $new_price;
+          $option_price = $new_option_price;
+        ]]> 
+      </add>
+    </operation>
+  </file>
+  <file path="system/library/cart.php">
+    <operation>
+      <search><![CDATA[$option_price = 0;]]></search>
+      <add position="after"><![CDATA[
+        $option_price_arr = array();
+      ]]></add>
+    </operation>
+      <operation>
+        <search><![CDATA[if ($option_value_query->row['price_prefix'] == '+') {]]></search>
+        <add position="replace" offset="4"><![CDATA[
+          //знаки равно нужными первыми
+          if ($option_value_query->row['price_prefix'] == '=') {
+              $sort_key=count($option_price_arr) + 1;
+          } else {
+              $sort_key=count($option_price_arr)+10;
+          }
+          
+          $option_price_arr[$sort_key] = array(
+              $option_value_query->row['price_prefix']=>$option_value_query->row['price'],
+          );
+        ]]></add>
+      </operation>
+      <operation>
+        <search><![CDATA[if (!$product_query->row['quantity']]]></search>
+        <add position="before"><![CDATA[
+          $new_price = $price;
+          $new_option_price = 0;
+          
+          ksort($option_price_arr);
+          
+          $has_eq_mod = false;
+
+          foreach($option_price_arr as $operations){
+              foreach($operations as $operation=>$value){
+                  if ($operation == '=') {
+                      //цена опции становится основной
+                      if (!$has_eq_mod){
+                          $new_price = 0;
+                          $new_option_price = $value;
+                          $has_eq_mod = true;
+                      } else {
+                          $new_option_price += $value;
+                      }
+                  } else if ($operation == '+') {
+                      $new_option_price += $value;
+                  } else if ($operation == '-') {
+                      $new_option_price -= $value;
+                  } else if ($operation == '*') {
+                      $new_price = $new_price * $value;
+                      $new_option_price = $new_option_price * $value;
+                  } else if ($operation == '/') {
+                      $new_price = $new_price / $value;
+                      $new_option_price = $new_option_price / $value;
+                  } else if ($operation == 'u') {
+                      $new_price = $new_price + (( $new_price * $value ) / 100);
+                      $new_option_price = $new_option_price + (( $new_option_price * $value ) / 100);
+                  } else if ($operation == 'd') {
+                      $new_price = $new_price - (( $new_price * $value ) / 100);
+                      $new_option_price = $new_option_price - (( $new_option_price * $value ) / 100);
+                  }
+              }
+          }
+          $price = $new_price;
+          $option_price = $new_option_price;
+        ]]> 
+      </add>
+    </operation>
+  </file>
+  
+  <file path="admin/view/template/editors/product/product_form.tpl">
+    <operation>
+      <search><![CDATA[<?php if ($product_option_value['price_prefix'] == '+') { ?>]]></search>
+      <add position="before"><![CDATA[
+        <?php if ($product_option_value['price_prefix'] == '=') { ?>
+            <option value="=" selected="selected">=</option>
+        <?php } else { ?>
+            <option value="=">=</option>
+        <?php } ?>
+        <?php if ($product_option_value['price_prefix'] == '*') { ?>
+            <option value="*" selected="selected">*</option>
+        <?php } else { ?>
+            <option value="*">*</option>
+        <?php } ?>
+        <?php if ($product_option_value['price_prefix'] == '/') { ?>
+                                    <option value="/" selected="selected">/</option>
+        <?php } else { ?>
+            <option value="/">/</option>
+        <?php } ?>
+        <?php //можно и +% но тогда размер поля в скл таблице надо менять ?>
+        <?php if ($product_option_value['price_prefix'] == 'u') { ?>
+            <option value="u" selected="selected">+%</option>
+        <?php } else { ?>
+            <option value="u">+%</option>
+        <?php } ?>
+        <?php if ($product_option_value['price_prefix'] == 'd') { ?>
+            <option value="d" selected="selected">-%</option>
+        <?php } else { ?>
+            <option value="d">-%</option>
+        <?php } ?>
+      ]]></add>
+    </operation>
+    <operation>
+      <search><![CDATA[<select name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][price_prefix]"]]></search>
+      <add position="after" offset="2"><![CDATA[
+        html += '      <option value="=">=</option>';
+        html += '      <option value="*">*</option>';
+        html += '      <option value="/">/</option>';
+        html += '      <option value="u">+%</option>';
+        html += '      <option value="d">-%</option>';
+      ]]></add>
+    </operation>
+  </file>
+  <file path="admin/view/template/catalog/product_form.tpl">
+    <operation>
+      <search><![CDATA[<?php if ($product_option_value['price_prefix'] == '+') { ?>]]></search>
+      <add position="before"><![CDATA[
+        <?php if ($product_option_value['price_prefix'] == '=') { ?>
+            <option value="=" selected="selected">=</option>
+        <?php } else { ?>
+            <option value="=">=</option>
+        <?php } ?>
+        <?php if ($product_option_value['price_prefix'] == '*') { ?>
+            <option value="*" selected="selected">*</option>
+        <?php } else { ?>
+            <option value="*">*</option>
+        <?php } ?>
+        <?php if ($product_option_value['price_prefix'] == '/') { ?>
+                                    <option value="/" selected="selected">/</option>
+        <?php } else { ?>
+            <option value="/">/</option>
+        <?php } ?>
+        <?php //можно и +% но тогда размер поля в скл таблице надо менять ?>
+        <?php if ($product_option_value['price_prefix'] == 'u') { ?>
+            <option value="u" selected="selected">+%</option>
+        <?php } else { ?>
+            <option value="u">+%</option>
+        <?php } ?>
+        <?php if ($product_option_value['price_prefix'] == 'd') { ?>
+            <option value="d" selected="selected">-%</option>
+        <?php } else { ?>
+            <option value="d">-%</option>
+        <?php } ?>
+      ]]></add>
+    </operation>
+    <operation>
+      <search><![CDATA[<select name="product_option[' + option_row + '][product_option_value][' + option_value_row + '][price_prefix]"]]></search>
+      <add position="after" offset="2"><![CDATA[
+        html += '      <option value="=">=</option>';
+        html += '      <option value="*">*</option>';
+        html += '      <option value="/">/</option>';
+        html += '      <option value="u">+%</option>';
+        html += '      <option value="d">-%</option>';
+      ]]></add>
+    </operation>
+  </file>
+  <file path="catalog/controller/product/product.php">
+    <operation>
+      <search><![CDATA[$price = $this->currency->format($this->tax->calculate($option_value['price'], $product_info['tax_class_id'], $this->config->get('config_tax') ? 'P' : false)]]></search>
+      <add position="replace"><![CDATA[
+        if ($option_value['price_prefix']=="u") {
+            $price = '+' . (float)$option_value['price'].'%';
+        }
+        elseif ($option_value['price_prefix']=="d") {
+            $price = '-' . (float)$option_value['price'].'%';
+        }
+        elseif ($option_value['price_prefix']=="*") {
+            $price = '*' . (float)$option_value['price'];
+        }
+        elseif ($option_value['price_prefix']=="/") {
+            $price = '/' . (float)$option_value['price'];
+        }
+        else{
+            $price = $this->currency->format($this->tax->calculate($option_value['price'], $product_info['tax_class_id'], $this->config->get('config_tax') ? 'P' : false), $this->session->data['currency']);
+        }
+        // $price = $this->currency->format($this->tax->calculate($option_value['price'], $product_info['tax_class_id'], $this->config->get('config_tax') ? 'P' : false)]]></add>
+    </operation>
+  </file>
+  
+</modification>
